@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(AvsCurrentTargetFramework)</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <Import Project="..\..\build\UnitTests.NetCore.targets" />
+  <Import Project="..\..\build\XUnit.props" />
+  <Import Project="..\..\build\SharedVersion.props" />
+  <Import Project="..\..\build\NullableEnable.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Linux\Avalonia.LinuxFramebuffer\Avalonia.LinuxFramebuffer.csproj" />
+  </ItemGroup>
+</Project>

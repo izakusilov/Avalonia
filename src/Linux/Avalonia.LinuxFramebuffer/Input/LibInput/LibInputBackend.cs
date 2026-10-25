@@ -35,17 +35,13 @@ namespace Avalonia.LinuxFramebuffer.Input.LibInput
             IntPtr[] devices = [.. options.Events!.Select(f => libinput_path_add_device(ctx, f)).Where(d => d != IntPtr.Zero)];
             var screenOrientation = _screen is ISurfaceOrientation surfaceOrientation ? surfaceOrientation.Orientation : SurfaceOrientation.Rotation0;
             
-            float[] matrix = screenOrientation switch
-            {
-                SurfaceOrientation.Rotation90 => [0, 1, 0, -1, 0, 1],
-                SurfaceOrientation.Rotation180 => [-1, 0, 1, 0, -1, 1],
-                SurfaceOrientation.Rotation270 => [0, -1, 1, 1, 0, 0],
-                _ => [1, 0, 0, 0, 1, 0],    // Normal
-            };
-
             foreach (var device in devices)
             {
-                libinput_device_config_calibration_set_matrix(device, matrix);
+                // Keep the device calibration (e.g. LIBINPUT_CALIBRATION_MATRIX set by udev)
+                float[] calibration = [1, 0, 0, 0, 1, 0];
+                libinput_device_config_calibration_get_default_matrix(device, calibration);
+                if (GetCalibrationMatrix(screenOrientation, calibration) is { } matrix)
+                    libinput_device_config_calibration_set_matrix(device, matrix);
             }
 
             while (true)
@@ -71,6 +67,35 @@ namespace Avalonia.LinuxFramebuffer.Input.LibInput
                 var pfd = new PollFd { fd = fd, events = 1 };
                 NativeUnsafeMethods.poll(&pfd, new IntPtr(1), 10);
             }
+        }
+
+        /// <summary>
+        /// Returns the libinput calibration matrix that applies the screen orientation on top of the device's
+        /// own <paramref name="calibration"/>, or null if the calibration doesn't need to be changed.
+        /// </summary>
+        internal static float[]? GetCalibrationMatrix(SurfaceOrientation orientation, float[] calibration)
+        {
+            float[]? rotation = orientation switch
+            {
+                SurfaceOrientation.Rotation90 => [0, 1, 0, -1, 0, 1],
+                SurfaceOrientation.Rotation180 => [-1, 0, 1, 0, -1, 1],
+                SurfaceOrientation.Rotation270 => [0, -1, 1, 1, 0, 0],
+                _ => null,    // Normal
+            };
+
+            if (rotation is null)
+                return null;
+
+            // rotation * calibration: the calibration is applied to the raw coordinates first, then the rotation
+            return
+            [
+                rotation[0] * calibration[0] + rotation[1] * calibration[3],
+                rotation[0] * calibration[1] + rotation[1] * calibration[4],
+                rotation[0] * calibration[2] + rotation[1] * calibration[5] + rotation[2],
+                rotation[3] * calibration[0] + rotation[4] * calibration[3],
+                rotation[3] * calibration[1] + rotation[4] * calibration[4],
+                rotation[3] * calibration[2] + rotation[4] * calibration[5] + rotation[5],
+            ];
         }
 
         private void ScheduleInput(RawInputEventArgs ev) => _onInput?.Invoke(ev);

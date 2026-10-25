@@ -154,6 +154,7 @@
     <Project Path="tests/Avalonia.IntegrationTests.Appium/Avalonia.IntegrationTests.Appium.csproj" />
     <Project Path="tests/Avalonia.IntegrationTests.Win32/Avalonia.IntegrationTests.Win32.csproj" />
     <Project Path="tests/Avalonia.LeakTests/Avalonia.LeakTests.csproj" />
+    <Project Path="tests/Avalonia.LinuxFramebuffer.UnitTests/Avalonia.LinuxFramebuffer.UnitTests.csproj" />
     <Project Path="tests/Avalonia.Markup.UnitTests/Avalonia.Markup.UnitTests.csproj" />
     <Project Path="tests/Avalonia.Markup.Xaml.UnitTests/Avalonia.Markup.Xaml.UnitTests.csproj" />
     <Project Path="tests/Avalonia.RenderTests.WpfCompare/Avalonia.RenderTests.WpfCompare.csproj" />

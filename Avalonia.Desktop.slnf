@@ -68,6 +68,7 @@
       "tests\\Avalonia.IntegrationTests.Appium\\Avalonia.IntegrationTests.Appium.csproj",
       "tests\\Avalonia.IntegrationTests.Win32\\Avalonia.IntegrationTests.Win32.csproj",
       "tests\\Avalonia.LeakTests\\Avalonia.LeakTests.csproj",
+      "tests\\Avalonia.LinuxFramebuffer.UnitTests\\Avalonia.LinuxFramebuffer.UnitTests.csproj",
       "tests\\Avalonia.Markup.UnitTests\\Avalonia.Markup.UnitTests.csproj",
       "tests\\Avalonia.Markup.Xaml.UnitTests\\Avalonia.Markup.Xaml.UnitTests.csproj",
       "tests\\Avalonia.RenderTests.WpfCompare\\Avalonia.RenderTests.WpfCompare.csproj",
