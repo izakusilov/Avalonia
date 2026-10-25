@@ -15,13 +15,23 @@ namespace Avalonia.Wayland.Screens;
 internal sealed class SnapshotScreensImpl
     : ScreensBase<object, WaylandSnapshotScreen>, IWaylandOutputsSink
 {
-    private WaylandOutputsSnapshot _latest = new(Array.Empty<WaylandOutputSnapshot>());
+    private WaylandOutputsSnapshot _latest = new(0, Array.Empty<WaylandOutputSnapshot>());
 
     public void OnOutputsChanged(WaylandOutputsSnapshot snapshot)
     {
+        // Snapshots posted during platform init arrive after ApplyInitialSnapshot;
+        // don't let them roll the state back.
+        if (snapshot.Serial <= _latest.Serial)
+            return;
         _latest = snapshot;
         OnChanged();
     }
+
+    /// <summary>
+    /// Applies the outputs known at platform init. Nothing can have read or subscribed
+    /// to the screens yet, so no change notification is raised.
+    /// </summary>
+    internal void ApplyInitialSnapshot(WaylandOutputsSnapshot snapshot) => _latest = snapshot;
 
     internal WaylandOutputSnapshot? Lookup(object id) =>
         _latest.Outputs.FirstOrDefault(o => ReferenceEquals(o.Id, id));

@@ -63,6 +63,11 @@ class WaylandPlatform
         if (initTcs.Task.GetAwaiter().GetResult() is { } initError)
             return initError;
 
+        // Outputs announced during init were also posted to the UI thread, but those jobs won't run
+        // until the main loop starts, after the main window has been created. Apply them right away.
+        if (worker.InitialOutputs is { } initialOutputs)
+            screens.ApplyInitialSnapshot(initialOutputs);
+
         IDispatcherImpl dispatcherImpl = options.UseGLibMainLoop
             ? new WaylandGlibDispatcher(options.ExternalGLibMainLoopExceptionLogger)
             : new ManagedDispatcherImpl(null);

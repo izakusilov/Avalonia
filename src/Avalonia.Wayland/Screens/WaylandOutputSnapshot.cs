@@ -31,7 +31,8 @@ internal sealed partial class WaylandOutputSnapshot(
 /// Full snapshot of all outputs the compositor currently has bound and
 /// fully initialised (i.e. at least their first <c>done</c> batch — and
 /// matching xdg_output done if applicable — has been received). Pushed
-/// to the UI thread by the worker.
+/// to the UI thread by the worker. <c>Serial</c> increases with every
+/// snapshot, so the UI thread can drop stale ones.
 /// </summary>
 [DefinitelyNotARecord]
-internal sealed partial class WaylandOutputsSnapshot(IReadOnlyList<WaylandOutputSnapshot> Outputs);
+internal sealed partial class WaylandOutputsSnapshot(long Serial, IReadOnlyList<WaylandOutputSnapshot> Outputs);

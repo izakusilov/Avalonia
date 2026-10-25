@@ -28,6 +28,11 @@ partial class WaylandWorker
     private WaylandGlobals? _globals;
     private WaylandOutputsSinkProxy? _outputsSink;
     public WaylandGlobals? Globals => _globals;
+    /// <summary>
+    /// Outputs known once the initial connection's globals are set up. Assigned on the
+    /// worker thread before the init task completes.
+    /// </summary>
+    public WaylandOutputsSnapshot? InitialOutputs { get; private set; }
     public WaylandPlatformGraphics PlatformGraphics { get; } = new();
     private Thread? _thread;
     public IRawEventGrouperDispatchQueue InputDispatchQueue { get; }
@@ -180,6 +185,8 @@ partial class WaylandWorker
         _thread = Thread.CurrentThread;
         _connection = connection;
         _globals = new WaylandGlobals(_connection, this, options, _outputsSink);
+        if (initTcs != null)
+            InitialOutputs = _globals.Outputs.CreateSnapshot();
         // Globals are fully constructed (required globals bound, sanity checks passed),
         // the display is deemed usable
         initTcs?.TrySetResult(null);

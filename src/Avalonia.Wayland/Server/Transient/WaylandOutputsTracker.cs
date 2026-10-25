@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Avalonia.Wayland.Screens;
 using NWayland.Protocols.Wayland;
 using NWayland.Protocols.XdgOutputUnstableV1;
@@ -26,6 +27,8 @@ internal sealed class WaylandOutputsTracker
 
     private readonly WaylandOutputsSinkProxy? _sink;
     private ZxdgOutputManagerV1? _xdgOutputManager;
+    // Process-wide so snapshots stay ordered across reconnects (each connection gets a new tracker)
+    private static long s_lastSnapshotSerial;
 
     /// <summary>
     /// Wires the xdg-output manager once <see cref="WaylandGlobals"/> has
@@ -88,10 +91,18 @@ internal sealed class WaylandOutputsTracker
     {
         if (_sink == null)
             return;
+        _sink.OnOutputsChanged(CreateSnapshot());
+    }
+
+    /// <summary>
+    /// Builds a snapshot of the outputs in <see cref="Outputs"/>, newer than any previously built one.
+    /// </summary>
+    public WaylandOutputsSnapshot CreateSnapshot()
+    {
         var list = new List<WaylandOutputSnapshot>(Outputs.Count);
         foreach (var o in Outputs)
             list.Add(o.ToSnapshot());
-        _sink.OnOutputsChanged(new WaylandOutputsSnapshot(list));
+        return new WaylandOutputsSnapshot(Interlocked.Increment(ref s_lastSnapshotSerial), list);
     }
 
     internal sealed class Output : IDisposable
