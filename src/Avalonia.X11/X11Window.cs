@@ -235,10 +235,13 @@ namespace Avalonia.X11
                 SetWmClass(_handle, _platform.Options.WmClass);
             }
 
+            // With compositor-driven resize, framebuffer surfaces (used when the window is too large for the GPU)
+            // have to resize the render window themselves
+            var resizeRenderWindow = _useRenderWindow && _useCompositorDrivenRenderWindowResize;
             var surfaces = new List<IPlatformRenderSurface>
             {
                 new X11FramebufferSurface(_x11.DeferredDisplay, _renderHandle, 
-                   depth, _platform.Options.UseRetainedFramebuffer ?? false)
+                   depth, _platform.Options.UseRetainedFramebuffer ?? false, resizeRenderWindow)
             };
 
             // XShm needs a 32-bit visual (other depths would require a slow XShmPutImage conversion) and the
@@ -247,7 +250,7 @@ namespace Avalonia.X11
             {
                 surfaces.Insert(0,
                     new X11ShmFramebufferSurface(_x11.DeferredDisplay, _renderHandle, visual, depth,
-                        platform.DeferredDisplayDispatcher));
+                        platform.DeferredDisplayDispatcher, resizeRenderWindow));
             }
             
             if (egl != null)

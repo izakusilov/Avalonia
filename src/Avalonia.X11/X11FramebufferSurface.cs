@@ -10,14 +10,16 @@ namespace Avalonia.X11
         private readonly IntPtr _xid;
         private readonly int _depth;
         private readonly bool _retain;
+        private readonly bool _resizeToSceneSize;
         private RetainedFramebuffer? _fb;
 
-        public X11FramebufferSurface(IntPtr display, IntPtr xid, int depth, bool retain)
+        public X11FramebufferSurface(IntPtr display, IntPtr xid, int depth, bool retain, bool resizeToSceneSize)
         {
             _display = display;
             _xid = xid;
             _depth = depth;
             _retain = retain;
+            _resizeToSceneSize = resizeToSceneSize;
         }
 
         void Blit(RetainedFramebuffer fb)
@@ -49,9 +51,12 @@ namespace Avalonia.X11
             }
         }
         
-        public ILockedFramebuffer Lock(IRenderTarget.RenderTargetSceneInfo _, out FramebufferLockProperties properties)
+        public ILockedFramebuffer Lock(IRenderTarget.RenderTargetSceneInfo sceneInfo, out FramebufferLockProperties properties)
         {
             XLockDisplay(_display);
+            // With compositor-driven resize, the render window is resized by the surface that draws the frame
+            if (_resizeToSceneSize)
+                XConfigureResizeWindow(_display, _xid, sceneInfo.Size);
             XGetGeometry(_display, _xid, out var root, out var x, out var y, out var width, out var height,
                 out var bw, out var d);
             XUnlockDisplay(_display);

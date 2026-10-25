@@ -20,13 +20,14 @@ internal class X11ShmFramebufferRenderTarget : IFramebufferRenderTarget
     private const int MaxInFlight = 2;
 
     public X11ShmFramebufferRenderTarget(IntPtr deferredDisplay, IntPtr windowXId, IntPtr visual, int depth,
-        X11DeferredDisplayDispatcher dispatcher)
+        X11DeferredDisplayDispatcher dispatcher, bool resizeToSceneSize)
     {
         _deferredDisplay = deferredDisplay;
         _windowXId = windowXId;
         _visual = visual;
         _depth = depth;
         _dispatcher = dispatcher;
+        _resizeToSceneSize = resizeToSceneSize;
     }
 
     private readonly IntPtr _deferredDisplay;
@@ -34,6 +35,7 @@ internal class X11ShmFramebufferRenderTarget : IFramebufferRenderTarget
     private readonly IntPtr _visual;
     private readonly int _depth;
     private readonly X11DeferredDisplayDispatcher _dispatcher;
+    private readonly bool _resizeToSceneSize;
 
     private readonly Queue<X11ShmImage> _availableQueue = new();
     private PixelSize? _lastSize;
@@ -54,6 +56,9 @@ internal class X11ShmFramebufferRenderTarget : IFramebufferRenderTarget
             _dispatcher.DrainEventsBlockingAtMostOnce();
         }
 
+        // With compositor-driven resize, the render window is resized by the surface that draws the frame
+        if (_resizeToSceneSize)
+            XLib.XConfigureResizeWindow(_deferredDisplay, _windowXId, sceneInfo.Size);
         XLib.XGetGeometry(_deferredDisplay, _windowXId, out _, out _, out _, out var width, out var height,
             out _, out _);
         var size = new PixelSize(width, height);

@@ -54,7 +54,8 @@ internal class SkiaContext : IPlatformRenderInterfaceContext
 
         if (_gpu?.TryCreateRenderTarget(surfaces) is { } gpuRenderTarget)
         {
-            return new SkiaGpuRenderTarget(_gpu, gpuRenderTarget);
+            return new SkiaGpuRenderTarget(_gpu, gpuRenderTarget,
+                surfaces.OfType<IFramebufferPlatformSurface>().FirstOrDefault(), MaxOffscreenRenderTargetPixelSize);
         }
 
         foreach (var surface in surfaces)
